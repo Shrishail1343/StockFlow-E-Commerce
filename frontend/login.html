@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockFlow — Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --blue-900: #0a1628;
+            --blue-800: #0f2347;
+            --blue-600: #1a4fd6;
+            --blue-500: #2563eb;
+            --blue-400: #3b82f6;
+            --blue-300: #93c5fd;
+            --accent: #00d4aa;
+            --accent-dim: rgba(0,212,170,0.15);
+            --white: #ffffff;
+            --gray-100: #f0f4ff;
+            --gray-200: #e2eaff;
+            --gray-400: #94a3b8;
+            --gray-600: #64748b;
+            --error: #ef4444;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--blue-900);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated mesh background */
+        .bg-mesh {
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse 80% 60% at 20% 20%, rgba(26,79,214,0.35) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 80% at 80% 80%, rgba(0,212,170,0.2) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 50% at 60% 10%, rgba(59,130,246,0.2) 0%, transparent 60%);
+            z-index: 0;
+            animation: meshShift 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes meshShift {
+            from { transform: scale(1) rotate(0deg); }
+            to { transform: scale(1.05) rotate(1deg); }
+        }
+
+        /* Floating orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.4;
+            animation: float 6s ease-in-out infinite;
+            z-index: 0;
+        }
+        .orb-1 { width: 300px; height: 300px; background: var(--blue-600); top: -100px; left: -100px; animation-delay: 0s; }
+        .orb-2 { width: 200px; height: 200px; background: var(--accent); bottom: -50px; right: 100px; animation-delay: 2s; }
+        .orb-3 { width: 150px; height: 150px; background: var(--blue-400); top: 40%; right: -50px; animation-delay: 4s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) translateX(0px); }
+            33% { transform: translateY(-20px) translateX(10px); }
+            66% { transform: translateY(10px) translateX(-10px); }
+        }
+
+        /* Grid pattern overlay */
+        .grid-overlay {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+        }
+
+        .login-wrapper {
+            position: relative;
+            z-index: 10;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            width: 900px;
+            max-width: 95vw;
+            background: rgba(15, 35, 71, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(59,130,246,0.2);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 40px 120px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05) inset;
+            animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Left panel - Branding */
+        .brand-panel {
+            background: linear-gradient(135deg, rgba(26,79,214,0.3) 0%, rgba(0,212,170,0.1) 100%);
+            border-right: 1px solid rgba(59,130,246,0.2);
+            padding: 60px 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brand-panel::before {
+            content: '';
+            position: absolute;
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(0,212,170,0.15) 0%, transparent 70%);
+            bottom: -100px; right: -100px;
+            border-radius: 50%;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 44px; height: 44px;
+            background: linear-gradient(135deg, var(--blue-500), var(--accent));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text span { color: var(--accent); }
+
+        .brand-tagline {
+            margin-top: 60px;
+        }
+
+        .brand-tagline h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--white);
+            line-height: 1.15;
+            margin-bottom: 16px;
+        }
+
+        .brand-tagline h1 em {
+            font-style: normal;
+            color: var(--accent);
+        }
+
+        .brand-tagline p {
+            color: var(--gray-400);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .feature-pills {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 40px;
+        }
+
+        .pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: var(--gray-300, #93c5fd);
+        }
+
+        .pill-dot {
+            width: 7px; height: 7px;
+            background: var(--accent);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .brand-footer {
+            color: var(--gray-600);
+            font-size: 12px;
+        }
+
+        /* Right panel - Form */
+        .form-panel {
+            padding: 60px 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .form-header {
+            margin-bottom: 36px;
+        }
+
+        .form-header h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+
+        .form-header p {
+            color: var(--gray-400);
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--gray-300, #93c5fd);
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-600);
+            font-size: 16px;
+            transition: color 0.2s;
+            pointer-events: none;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 13px 14px 13px 42px;
+            background: rgba(255,255,255,0.05);
+            border: 1.5px solid rgba(59,130,246,0.2);
+            border-radius: 10px;
+            color: var(--white);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.25s;
+        }
+
+        .form-input:focus {
+            border-color: var(--blue-400);
+            background: rgba(59,130,246,0.08);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+        }
+
+        .form-input:focus + .input-icon,
+        .input-wrapper:focus-within .input-icon {
+            color: var(--blue-400);
+        }
+
+        .form-input::placeholder { color: var(--gray-600); }
+
+        .password-toggle {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--gray-600);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+
+        .password-toggle:hover { color: var(--blue-400); }
+
+        .form-options {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .remember-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--gray-400);
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .remember-label input[type="checkbox"] {
+            width: 15px; height: 15px;
+            accent-color: var(--blue-500);
+            cursor: pointer;
+        }
+
+        .forgot-link {
+            color: var(--accent);
+            font-size: 13px;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .forgot-link:hover { opacity: 0.8; }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--blue-600), var(--blue-500));
+            border: none;
+            border-radius: 10px;
+            color: var(--white);
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+
+        .btn-login:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(37,99,235,0.4); }
+        .btn-login:hover::before { opacity: 1; }
+        .btn-login:active { transform: translateY(0); }
+
+        .btn-login.loading { pointer-events: none; opacity: 0.8; }
+
+        .spinner {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-msg {
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.3);
+            border-radius: 8px;
+            color: #fca5a5;
+            font-size: 13px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .error-msg.show { display: flex; }
+
+        .demo-hint {
+            text-align: center;
+            margin-top: 20px;
+            padding: 12px;
+            background: rgba(0,212,170,0.06);
+            border: 1px solid rgba(0,212,170,0.15);
+            border-radius: 8px;
+            color: var(--gray-400);
+            font-size: 12px;
+        }
+
+        .demo-hint strong { color: var(--accent); }
+
+        @media (max-width: 700px) {
+            .login-wrapper { grid-template-columns: 1fr; }
+            .brand-panel { display: none; }
+            .form-panel { padding: 40px 28px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-mesh"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="grid-overlay"></div>
+
+    <div class="login-wrapper">
+        <!-- Brand Panel -->
+        <div class="brand-panel">
+            <div class="brand-logo">
+                <div class="logo-icon">📦</div>
+                <span class="logo-text">Stock<span>Flow</span></span>
+            </div>
+
+            <div class="brand-tagline">
+                <h1>Manage your <em>inventory</em> with precision</h1>
+                <p>A complete solution for inventory tracking, order management, and business analytics.</p>
+
+                <div class="feature-pills">
+                    <div class="pill"><span class="pill-dot"></span> Real-time stock monitoring</div>
+                    <div class="pill"><span class="pill-dot"></span> Smart order processing</div>
+                    <div class="pill"><span class="pill-dot"></span> Revenue analytics dashboard</div>
+                    <div class="pill"><span class="pill-dot"></span> Low-stock alerts & automation</div>
+                </div>
+            </div>
+
+            <div class="brand-footer">© 2024 StockFlow. All rights reserved.</div>
+        </div>
+
+        <!-- Form Panel -->
+        <div class="form-panel">
+            <div class="form-header">
+                <h2>Welcome back</h2>
+                <p>Sign in to your admin dashboard</p>
+            </div>
+
+            <div class="error-msg" id="errorMsg">
+                <span>⚠️</span>
+                <span id="errorText">Invalid credentials. Please try again.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">👤</span>
+                    <input type="text" id="username" class="form-input" placeholder="Enter your username" autocomplete="username">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" id="password" class="form-input" placeholder="Enter your password" autocomplete="current-password">
+                    <button class="password-toggle" onclick="togglePassword()" type="button" id="toggleBtn">👁️</button>
+                </div>
+            </div>
+
+            <div class="form-options">
+                <label class="remember-label">
+                    <input type="checkbox" id="remember"> Remember me
+                </label>
+                <a href="#" class="forgot-link">Forgot password?</a>
+            </div>
+
+            <button class="btn-login" id="loginBtn" onclick="handleLogin()">
+                Sign In
+            </button>
+
+            <div class="demo-hint">
+                Demo credentials — <strong>admin</strong> / <strong>admin123</strong>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+
+        function togglePassword() {
+            const pw = document.getElementById('password');
+            const btn = document.getElementById('toggleBtn');
+            if (pw.type === 'password') { pw.type = 'text'; btn.textContent = '🔒'; }
+            else { pw.type = 'password'; btn.textContent = '👁️'; }
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            document.getElementById('errorText').textContent = msg;
+            el.classList.add('show');
+        }
+
+        function hideError() {
+            document.getElementById('errorMsg').classList.remove('show');
+        }
+
+        async function handleLogin() {
+            hideError();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+
+            if (!username || !password) {
+                showError('Please enter your username and password.');
+                return;
+            }
+
+            btn.classList.add('loading');
+            btn.innerHTML = '<span class="spinner"></span> Signing in...';
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    btn.innerHTML = '✓ Redirecting...';
+                    setTimeout(() => window.location.href = 'dashboard.html', 800);
+                } else {
+                    const err = await response.json();
+                    showError(err.message || 'Invalid credentials. Please try again.');
+                    btn.classList.remove('loading');
+                    btn.innerHTML = 'Sign In';
+                }
+            } catch (err) {
+                // Demo mode: simulate login
+                if (username === 'admin' && password === 'admin123') {
+                    localStorage.setItem('token', 'demo-token-12345');
+                    localStorage.setItem('user', JSON.stringify({
+                        id: 1, username: 'admin', fullName: 'Alex Johnson',
+                        email: 'admin@stockflow.com', role: 'ADMIN'
+                    }));
+                    btn.innerHTML = '✓ Redirecting...';
+                    setTimeout(() => window.location.href = 'dashboard.html', 800);
+                } else {
+                    showError('Invalid credentials. Use admin / admin123 for demo.');
+                    btn.classList.remove('loading');
+                    btn.innerHTML = 'Sign In';
+                }
+            }
+        }
+
+        // Enter key support
+        document.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+
+        // Check if already logged in
+        if (localStorage.getItem('token')) window.location.href = 'dashboard.html';
+    </script>
+</body>
+</html>

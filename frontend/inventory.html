@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockFlow — Inventory</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <div class="app-layout">
+        <aside class="sidebar" id="sidebar">
+            <a href="dashboard.html" class="sidebar-logo">
+                <div class="logo-box">📦</div>
+                <span class="logo-name">Stock<span>Flow</span></span>
+            </a>
+            <div class="sidebar-section">
+                <div class="sidebar-section-label">Main</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span> Dashboard</a>
+                <a href="products.html" class="nav-item"><span class="nav-icon">📦</span> Products</a>
+                <a href="orders.html" class="nav-item"><span class="nav-icon">🛒</span> Orders</a>
+                <a href="inventory.html" class="nav-item active"><span class="nav-icon">🏭</span> Inventory</a>
+                <div class="sidebar-section-label">Analytics</div>
+                <a href="#" class="nav-item"><span class="nav-icon">📈</span> Reports</a>
+                <a href="#" class="nav-item"><span class="nav-icon">👥</span> Customers</a>
+                <div class="sidebar-section-label">System</div>
+                <a href="#" class="nav-item"><span class="nav-icon">⚙️</span> Settings</a>
+            </div>
+            <div class="sidebar-footer">
+                <div class="sidebar-user" onclick="logout()">
+                    <div class="user-avatar" id="sidebarAvatar">AJ</div>
+                    <div class="user-info"><div class="user-name" id="sidebarName">Alex Johnson</div><div class="user-role">Administrator</div></div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="main-content">
+            <header class="topbar">
+                <div class="topbar-title">Inventory <span>Management</span></div>
+                <div class="topbar-actions">
+                    <button class="topbar-btn" onclick="toggleDark()">🌙</button>
+                    <div class="topbar-avatar" id="topAvatar">AJ</div>
+                </div>
+            </header>
+
+            <main class="page-content">
+                <div class="page-header">
+                    <div><h1>Inventory</h1><p>Monitor stock levels and update inventory</p></div>
+                    <button class="btn btn-primary" onclick="openRestockModal()">📥 Restock Items</button>
+                </div>
+
+                <!-- Inventory Stats -->
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+                    <div class="stat-card" style="--stat-color:var(--green);--stat-bg:var(--green-pale);">
+                        <div class="stat-info">
+                            <div class="stat-label">In Stock Items</div>
+                            <div class="stat-value" id="inStockCount">37</div>
+                            <div class="stat-change up">Healthy stock levels</div>
+                        </div>
+                        <div class="stat-icon" style="background:var(--green-pale)">✅</div>
+                    </div>
+                    <div class="stat-card" style="--stat-color:var(--orange);--stat-bg:var(--orange-pale);">
+                        <div class="stat-info">
+                            <div class="stat-label">Low Stock Items</div>
+                            <div class="stat-value" id="lowStockCountStat">5</div>
+                            <div class="stat-change down">Needs restocking soon</div>
+                        </div>
+                        <div class="stat-icon" style="background:var(--orange-pale)">⚠️</div>
+                    </div>
+                    <div class="stat-card" style="--stat-color:var(--red);--stat-bg:var(--red-pale);">
+                        <div class="stat-info">
+                            <div class="stat-label">Out of Stock</div>
+                            <div class="stat-value" id="outOfStockCount">0</div>
+                            <div class="stat-change">Critical — restock now</div>
+                        </div>
+                        <div class="stat-icon" style="background:var(--red-pale)">🚨</div>
+                    </div>
+                </div>
+
+                <!-- Low Stock Alert Banner -->
+                <div id="lowStockBanner" style="background:linear-gradient(135deg,rgba(249,115,22,0.1),rgba(239,68,68,0.08));border:1px solid rgba(249,115,22,0.25);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:14px;">
+                    <div style="font-size:24px;">⚠️</div>
+                    <div>
+                        <div style="font-weight:700;color:var(--orange);margin-bottom:2px;">Low Stock Alert</div>
+                        <div style="font-size:13px;color:var(--text-secondary);">3 products are running critically low. Immediate restocking recommended.</div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" style="margin-left:auto;white-space:nowrap;" onclick="filterLowStock()">View Low Stock</button>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters-bar">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" class="search-input" id="searchInput" placeholder="Search inventory..." oninput="onSearch()">
+                    </div>
+                    <select class="filter-select" id="stockFilter" onchange="loadInventory()">
+                        <option value="all">All Items</option>
+                        <option value="low">Low Stock Only</option>
+                        <option value="ok">Healthy Stock</option>
+                        <option value="out">Out of Stock</option>
+                    </select>
+                </div>
+
+                <!-- Inventory Table -->
+                <div class="table-wrapper" style="position:relative;">
+                    <div id="loadingOverlay" class="loading-overlay" style="display:none;"><div class="spinner"></div></div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>SKU</th>
+                                <th>Category</th>
+                                <th>In Stock</th>
+                                <th>Threshold</th>
+                                <th>Stock Health</th>
+                                <th style="text-align:right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryBody"></tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Restock Modal -->
+    <div class="modal-overlay" id="restockModal">
+        <div class="modal" style="max-width:440px;">
+            <div class="modal-header">
+                <h3>Update Stock</h3>
+                <button class="modal-close" onclick="closeRestockModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-field" style="margin-bottom:16px;">
+                    <label>Product</label>
+                    <select id="restockProduct" style="padding:9px 12px;background:var(--bg-surface2);border:1.5px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:14px;outline:none;width:100%;">
+                        <option value="">Select product...</option>
+                    </select>
+                </div>
+                <div id="currentStockInfo" style="background:var(--bg-surface2);border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;color:var(--text-secondary);display:none;">
+                    Current stock: <strong id="currentStockValue" style="color:var(--text-primary);">—</strong>
+                </div>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label>Change Type</label>
+                        <select id="changeType" style="padding:9px 12px;background:var(--bg-surface2);border:1.5px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:14px;outline:none;">
+                            <option value="RESTOCK">Restock (Add)</option>
+                            <option value="ADJUSTMENT">Adjustment</option>
+                            <option value="RETURN">Return</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Quantity</label>
+                        <input type="number" id="restockQty" placeholder="Enter quantity" min="1">
+                    </div>
+                </div>
+                <div class="form-field" style="margin-top:16px;">
+                    <label>Notes (Optional)</label>
+                    <textarea id="restockNotes" placeholder="Reason for stock update..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeRestockModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveRestock()">Update Stock</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        const INVENTORY_DATA = [
+            { id:1, name:'iPhone 15 Pro', sku:'ELEC-001', categoryName:'Electronics', stockQuantity:45, lowStockThreshold:10 },
+            { id:2, name:'Samsung Galaxy S24', sku:'ELEC-002', categoryName:'Electronics', stockQuantity:32, lowStockThreshold:10 },
+            { id:3, name:'Sony WH-1000XM5', sku:'ELEC-003', categoryName:'Electronics', stockQuantity:8, lowStockThreshold:10 },
+            { id:4, name:'MacBook Air M3', sku:'ELEC-004', categoryName:'Electronics', stockQuantity:15, lowStockThreshold:5 },
+            { id:5, name:'Nike Air Max 270', sku:'CLTH-001', categoryName:'Clothing', stockQuantity:67, lowStockThreshold:20 },
+            { id:6, name:"Levi's 501 Jeans", sku:'CLTH-002', categoryName:'Clothing', stockQuantity:5, lowStockThreshold:15 },
+            { id:7, name:'Adidas Ultraboost', sku:'CLTH-003', categoryName:'Clothing', stockQuantity:23, lowStockThreshold:15 },
+            { id:8, name:'IKEA KALLAX Shelf', sku:'HOME-001', categoryName:'Home & Garden', stockQuantity:12, lowStockThreshold:5 },
+            { id:9, name:'Garden Hose 50ft', sku:'HOME-002', categoryName:'Home & Garden', stockQuantity:3, lowStockThreshold:10 },
+            { id:10, name:'Yoga Mat Pro', sku:'SPRT-001', categoryName:'Sports', stockQuantity:89, lowStockThreshold:20 },
+        ];
+
+        let searchTimer;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            authGuard(); initUser(); initDark();
+            loadInventory();
+            populateRestockSelect();
+        });
+
+        function onSearch() { clearTimeout(searchTimer); searchTimer = setTimeout(loadInventory, 300); }
+
+        function filterLowStock() {
+            document.getElementById('stockFilter').value = 'low';
+            loadInventory();
+        }
+
+        function loadInventory() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const filter = document.getElementById('stockFilter').value;
+            document.getElementById('loadingOverlay').style.display = 'flex';
+
+            setTimeout(() => {
+                let data = [...INVENTORY_DATA];
+                if (search) data = data.filter(p => p.name.toLowerCase().includes(search) || p.sku.toLowerCase().includes(search));
+                if (filter === 'low') data = data.filter(p => p.stockQuantity > 0 && p.stockQuantity <= p.lowStockThreshold);
+                if (filter === 'ok') data = data.filter(p => p.stockQuantity > p.lowStockThreshold);
+                if (filter === 'out') data = data.filter(p => p.stockQuantity === 0);
+                renderInventory(data);
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }, 300);
+        }
+
+        function renderInventory(items) {
+            if (!items.length) {
+                document.getElementById('inventoryBody').innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📭</div><p>No items found</p></div></td></tr>`;
+                return;
+            }
+
+            document.getElementById('inventoryBody').innerHTML = items.map(p => {
+                const pct = Math.min(100, Math.round((p.stockQuantity / (p.lowStockThreshold * 3)) * 100));
+                const isLow = p.stockQuantity <= p.lowStockThreshold;
+                const isCritical = p.stockQuantity <= p.lowStockThreshold * 0.5;
+                const barColor = isCritical ? 'var(--red)' : isLow ? 'var(--orange)' : 'var(--green)';
+
+                return `<tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            ${isLow ? '<span style="font-size:16px;" title="Low stock">⚠️</span>' : '<span style="font-size:16px;">📦</span>'}
+                            <div>
+                                <div style="font-weight:600;font-size:13px;">${p.name}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span style="font-family:monospace;font-size:12px;background:var(--bg-surface2);padding:2px 8px;border-radius:4px;color:var(--text-muted);">${p.sku}</span></td>
+                    <td style="color:var(--text-secondary);font-size:13px;">${p.categoryName}</td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span class="stock-dot ${isCritical ? 'critical' : isLow ? 'low' : 'ok'}"></span>
+                            <span style="font-size:18px;font-weight:800;color:${isCritical ? 'var(--red)' : isLow ? 'var(--orange)' : 'var(--text-primary)'};">${p.stockQuantity}</span>
+                            <span style="color:var(--text-muted);font-size:12px;">units</span>
+                        </div>
+                    </td>
+                    <td style="color:var(--text-secondary);font-size:13px;">Min: ${p.lowStockThreshold}</td>
+                    <td style="min-width:140px;">
+                        <div style="margin-bottom:4px;">
+                            <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+                                <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width 0.5s ease;"></div>
+                            </div>
+                        </div>
+                        <div style="font-size:11px;color:${isCritical?'var(--red)':isLow?'var(--orange)':'var(--green)'};">${isCritical ? 'Critical' : isLow ? 'Low' : 'Healthy'}</div>
+                    </td>
+                    <td style="text-align:right;">
+                        <button class="btn btn-sm btn-secondary" onclick="quickRestock(${p.id})">📥 Restock</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function populateRestockSelect() {
+            const sel = document.getElementById('restockProduct');
+            INVENTORY_DATA.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = `${p.name} (Stock: ${p.stockQuantity})`;
+                sel.appendChild(opt);
+            });
+
+            sel.addEventListener('change', () => {
+                const p = INVENTORY_DATA.find(x => x.id === parseInt(sel.value));
+                if (p) {
+                    document.getElementById('currentStockInfo').style.display = 'block';
+                    document.getElementById('currentStockValue').textContent = p.stockQuantity + ' units';
+                }
+            });
+        }
+
+        function openRestockModal(productId) {
+            if (productId) document.getElementById('restockProduct').value = productId;
+            document.getElementById('restockModal').classList.add('open');
+        }
+
+        function quickRestock(id) {
+            openRestockModal(id);
+            const p = INVENTORY_DATA.find(x => x.id === id);
+            if (p) {
+                document.getElementById('currentStockInfo').style.display = 'block';
+                document.getElementById('currentStockValue').textContent = p.stockQuantity + ' units';
+            }
+        }
+
+        function closeRestockModal() { document.getElementById('restockModal').classList.remove('open'); }
+
+        async function saveRestock() {
+            const productId = document.getElementById('restockProduct').value;
+            const qty = parseInt(document.getElementById('restockQty').value);
+            const type = document.getElementById('changeType').value;
+
+            if (!productId || !qty) { showToast('Please select a product and quantity', 'error'); return; }
+
+            const product = INVENTORY_DATA.find(p => p.id === parseInt(productId));
+            if (product) {
+                if (type === 'RESTOCK') product.stockQuantity += qty;
+                else if (type === 'ADJUSTMENT') product.stockQuantity = qty;
+                else product.stockQuantity = Math.max(0, product.stockQuantity + qty);
+            }
+
+            showToast(`Stock updated for ${product?.name}! (+${qty} units)`, 'success');
+            closeRestockModal();
+            loadInventory();
+        }
+
+        document.getElementById('restockModal').addEventListener('click', e => { if(e.target === e.currentTarget) closeRestockModal(); });
+    </script>
+</body>
+</html>

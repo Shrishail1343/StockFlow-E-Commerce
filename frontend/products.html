@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockFlow — Products</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <div class="app-layout">
+        <aside class="sidebar" id="sidebar">
+            <a href="dashboard.html" class="sidebar-logo">
+                <div class="logo-box">📦</div>
+                <span class="logo-name">Stock<span>Flow</span></span>
+            </a>
+            <div class="sidebar-section">
+                <div class="sidebar-section-label">Main</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span> Dashboard</a>
+                <a href="products.html" class="nav-item active"><span class="nav-icon">📦</span> Products</a>
+                <a href="orders.html" class="nav-item"><span class="nav-icon">🛒</span> Orders<span class="nav-badge" id="pendingBadge">0</span></a>
+                <a href="inventory.html" class="nav-item"><span class="nav-icon">🏭</span> Inventory</a>
+                <div class="sidebar-section-label">Analytics</div>
+                <a href="#" class="nav-item"><span class="nav-icon">📈</span> Reports</a>
+                <a href="#" class="nav-item"><span class="nav-icon">👥</span> Customers</a>
+                <div class="sidebar-section-label">System</div>
+                <a href="#" class="nav-item"><span class="nav-icon">⚙️</span> Settings</a>
+            </div>
+            <div class="sidebar-footer">
+                <div class="sidebar-user" onclick="logout()">
+                    <div class="user-avatar" id="sidebarAvatar">AJ</div>
+                    <div class="user-info">
+                        <div class="user-name" id="sidebarName">Alex Johnson</div>
+                        <div class="user-role">Administrator</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="main-content">
+            <header class="topbar">
+                <div class="topbar-title">Products <span>Management</span></div>
+                <div class="topbar-actions">
+                    <button class="topbar-btn" onclick="toggleDark()">🌙</button>
+                    <div class="topbar-avatar" id="topAvatar">AJ</div>
+                </div>
+            </header>
+
+            <main class="page-content">
+                <div class="page-header">
+                    <div>
+                        <h1>Products</h1>
+                        <p>Manage your product catalog and inventory</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openAddModal()">➕ Add Product</button>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters-bar">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" class="search-input" id="searchInput" placeholder="Search products..." oninput="onSearch()">
+                    </div>
+                    <select class="filter-select" id="categoryFilter" onchange="loadProducts()">
+                        <option value="">All Categories</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Home & Garden">Home & Garden</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Books">Books</option>
+                    </select>
+                    <select class="filter-select" id="statusFilter" onchange="loadProducts()">
+                        <option value="">All Status</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="INACTIVE">Inactive</option>
+                        <option value="DISCONTINUED">Discontinued</option>
+                    </select>
+                    <select class="filter-select" id="sortFilter" onchange="loadProducts()">
+                        <option value="name">Sort: Name</option>
+                        <option value="price">Sort: Price</option>
+                        <option value="stockQuantity">Sort: Stock</option>
+                        <option value="createdAt">Sort: Newest</option>
+                    </select>
+                    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;">
+                        <span id="productCount">0 products</span>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-wrapper" style="position:relative;">
+                    <div id="loadingOverlay" class="loading-overlay" style="display:none;"><div class="spinner"></div></div>
+                    <table id="productsTable">
+                        <thead>
+                            <tr>
+                                <th onclick="sortBy('name')">Product ↕</th>
+                                <th>SKU</th>
+                                <th onclick="sortBy('category')">Category ↕</th>
+                                <th onclick="sortBy('price')">Price ↕</th>
+                                <th onclick="sortBy('stockQuantity')">Stock ↕</th>
+                                <th>Status</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsBody">
+                            <tr><td colspan="7" class="empty-state"><div class="empty-icon">⏳</div><p>Loading products...</p></td></tr>
+                        </tbody>
+                    </table>
+                    <div class="pagination" id="pagination"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add/Edit Product Modal -->
+    <div class="modal-overlay" id="productModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Product</h3>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-field form-full">
+                        <label>Product Name *</label>
+                        <input type="text" id="pName" placeholder="Enter product name">
+                    </div>
+                    <div class="form-field">
+                        <label>Category</label>
+                        <select id="pCategory">
+                            <option value="">Select category</option>
+                            <option>Electronics</option>
+                            <option>Clothing</option>
+                            <option>Home & Garden</option>
+                            <option>Sports</option>
+                            <option>Books</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Status</label>
+                        <select id="pStatus">
+                            <option value="ACTIVE">Active</option>
+                            <option value="INACTIVE">Inactive</option>
+                            <option value="DISCONTINUED">Discontinued</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Price (USD) *</label>
+                        <input type="number" id="pPrice" placeholder="0.00" step="0.01" min="0">
+                    </div>
+                    <div class="form-field">
+                        <label>Cost Price (USD)</label>
+                        <input type="number" id="pCostPrice" placeholder="0.00" step="0.01" min="0">
+                    </div>
+                    <div class="form-field">
+                        <label>Stock Quantity *</label>
+                        <input type="number" id="pStock" placeholder="0" min="0">
+                    </div>
+                    <div class="form-field">
+                        <label>Low Stock Threshold</label>
+                        <input type="number" id="pThreshold" placeholder="10" min="1" value="10">
+                    </div>
+                    <div class="form-field form-full">
+                        <label>Description</label>
+                        <textarea id="pDesc" placeholder="Product description..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveProduct()" id="saveBtn">Save Product</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirm Modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal" style="max-width:400px;">
+            <div class="modal-header">
+                <h3>Delete Product</h3>
+                <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--text-secondary);line-height:1.6;">Are you sure you want to delete <strong id="deleteProductName"></strong>? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">🗑️ Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        let currentPage = 0;
+        let totalPages = 0;
+        let editingId = null;
+        let deleteId = null;
+        let sortField = 'name';
+        let sortDir = 'asc';
+        let searchTimer = null;
+
+        const DEMO_PRODUCTS = [
+            { id:1, name:'iPhone 15 Pro', sku:'ELEC-001', categoryName:'Electronics', price:1199.99, costPrice:900, stockQuantity:45, lowStockThreshold:10, status:'ACTIVE', lowStock:false },
+            { id:2, name:'Samsung Galaxy S24', sku:'ELEC-002', categoryName:'Electronics', price:999.99, costPrice:750, stockQuantity:32, lowStockThreshold:10, status:'ACTIVE', lowStock:false },
+            { id:3, name:'Sony WH-1000XM5', sku:'ELEC-003', categoryName:'Electronics', price:349.99, costPrice:220, stockQuantity:8, lowStockThreshold:10, status:'ACTIVE', lowStock:true },
+            { id:4, name:'MacBook Air M3', sku:'ELEC-004', categoryName:'Electronics', price:1299.99, costPrice:950, stockQuantity:15, lowStockThreshold:5, status:'ACTIVE', lowStock:false },
+            { id:5, name:'Nike Air Max 270', sku:'CLTH-001', categoryName:'Clothing', price:159.99, costPrice:80, stockQuantity:67, lowStockThreshold:20, status:'ACTIVE', lowStock:false },
+            { id:6, name:"Levi's 501 Jeans", sku:'CLTH-002', categoryName:'Clothing', price:79.99, costPrice:35, stockQuantity:5, lowStockThreshold:15, status:'ACTIVE', lowStock:true },
+            { id:7, name:'Adidas Ultraboost', sku:'CLTH-003', categoryName:'Clothing', price:189.99, costPrice:95, stockQuantity:23, lowStockThreshold:15, status:'ACTIVE', lowStock:false },
+            { id:8, name:'IKEA KALLAX Shelf', sku:'HOME-001', categoryName:'Home & Garden', price:89.99, costPrice:45, stockQuantity:12, lowStockThreshold:5, status:'ACTIVE', lowStock:false },
+            { id:9, name:'Garden Hose 50ft', sku:'HOME-002', categoryName:'Home & Garden', price:34.99, costPrice:18, stockQuantity:3, lowStockThreshold:10, status:'ACTIVE', lowStock:true },
+            { id:10, name:'Yoga Mat Pro', sku:'SPRT-001', categoryName:'Sports', price:49.99, costPrice:22, stockQuantity:89, lowStockThreshold:20, status:'ACTIVE', lowStock:false },
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            authGuard();
+            initUser();
+            initDark();
+            loadProducts();
+        });
+
+        function onSearch() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(loadProducts, 300);
+        }
+
+        function sortBy(field) {
+            if (sortField === field) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+            else { sortField = field; sortDir = 'asc'; }
+            loadProducts();
+        }
+
+        async function loadProducts() {
+            const search = document.getElementById('searchInput').value;
+            const category = document.getElementById('categoryFilter').value;
+            const status = document.getElementById('statusFilter').value;
+            const sort = document.getElementById('sortFilter').value;
+
+            document.getElementById('loadingOverlay').style.display = 'flex';
+
+            try {
+                const data = await api.get(`/products?page=${currentPage}&size=8&search=${search}&category=${category}&status=${status}&sortBy=${sort}&sortDir=${sortDir}`);
+                renderProducts(data.content || data);
+                renderPagination(data.totalPages || 1, data.number || 0, data.totalElements || data.length);
+            } catch(e) {
+                // Demo mode
+                let products = [...DEMO_PRODUCTS];
+                if (search) products = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.sku.toLowerCase().includes(search.toLowerCase()));
+                if (category) products = products.filter(p => p.categoryName === category);
+                if (status) products = products.filter(p => p.status === status);
+                renderProducts(products);
+                renderPagination(1, 0, products.length);
+            } finally {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+        }
+
+        function renderProducts(products) {
+            document.getElementById('productCount').textContent = `${products.length} products`;
+            if (!products.length) {
+                document.getElementById('productsBody').innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📭</div><p>No products found</p></div></td></tr>`;
+                return;
+            }
+            document.getElementById('productsBody').innerHTML = products.map(p => `
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div style="width:36px;height:36px;border-radius:8px;background:var(--primary-pale);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${categoryEmoji(p.categoryName)}</div>
+                            <div>
+                                <div style="font-weight:600;font-size:14px;">${p.name}</div>
+                                ${p.lowStock ? '<div style="font-size:11px;color:var(--red);margin-top:1px;">⚠ Low stock</div>' : ''}
+                            </div>
+                        </div>
+                    </td>
+                    <td><span style="font-family:monospace;font-size:12px;background:var(--bg-surface2);padding:2px 8px;border-radius:4px;color:var(--text-muted);">${p.sku}</span></td>
+                    <td><span style="color:var(--text-secondary);">${p.categoryName || '—'}</span></td>
+                    <td><strong>$${Number(p.price).toFixed(2)}</strong>${p.costPrice ? `<div style="font-size:11px;color:var(--text-muted);">Cost: $${Number(p.costPrice).toFixed(2)}</div>` : ''}</td>
+                    <td>
+                        <div class="stock-indicator">
+                            <span class="stock-dot ${p.stockQuantity <= 5 ? 'critical' : p.lowStock ? 'low' : 'ok'}"></span>
+                            <span style="font-weight:600;color:${p.stockQuantity <= 5 ? 'var(--red)' : p.lowStock ? 'var(--orange)' : 'var(--text-primary)'};">${p.stockQuantity}</span>
+                        </div>
+                    </td>
+                    <td><span class="badge badge-${p.status.toLowerCase()}">${capitalize(p.status)}</span></td>
+                    <td style="text-align:right;">
+                        <div style="display:flex;gap:6px;justify-content:flex-end;">
+                            <button class="btn btn-sm btn-secondary btn-icon" onclick="editProduct(${p.id})" title="Edit">✏️</button>
+                            <button class="btn btn-sm btn-danger btn-icon" onclick="deleteProduct(${p.id}, '${p.name.replace(/'/g,"\\'")}') " title="Delete">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderPagination(total, current, totalItems) {
+            totalPages = total;
+            document.getElementById('pagination').innerHTML = `
+                <span class="pagination-info">Showing ${totalItems} items — Page ${current+1} of ${total}</span>
+                <div class="pagination-btns">
+                    <button class="page-btn" onclick="goPage(${current-1})" ${current===0?'disabled':''}>‹</button>
+                    ${Array.from({length:total},(_, i) => `<button class="page-btn ${i===current?'active':''}" onclick="goPage(${i})">${i+1}</button>`).join('')}
+                    <button class="page-btn" onclick="goPage(${current+1})" ${current>=total-1?'disabled':''}>›</button>
+                </div>
+            `;
+        }
+
+        function goPage(n) { currentPage = n; loadProducts(); }
+
+        function openAddModal() {
+            editingId = null;
+            document.getElementById('modalTitle').textContent = 'Add New Product';
+            document.getElementById('saveBtn').textContent = 'Save Product';
+            clearForm();
+            document.getElementById('productModal').classList.add('open');
+        }
+
+        async function editProduct(id) {
+            const product = DEMO_PRODUCTS.find(p => p.id === id) || {};
+            editingId = id;
+            document.getElementById('modalTitle').textContent = 'Edit Product';
+            document.getElementById('saveBtn').textContent = 'Update Product';
+            document.getElementById('pName').value = product.name || '';
+            document.getElementById('pCategory').value = product.categoryName || '';
+            document.getElementById('pStatus').value = product.status || 'ACTIVE';
+            document.getElementById('pPrice').value = product.price || '';
+            document.getElementById('pCostPrice').value = product.costPrice || '';
+            document.getElementById('pStock').value = product.stockQuantity || '';
+            document.getElementById('pThreshold').value = product.lowStockThreshold || 10;
+            document.getElementById('pDesc').value = product.description || '';
+            document.getElementById('productModal').classList.add('open');
+        }
+
+        async function saveProduct() {
+            const name = document.getElementById('pName').value.trim();
+            const price = document.getElementById('pPrice').value;
+            const stock = document.getElementById('pStock').value;
+            if (!name || !price) { showToast('Please fill required fields', 'error'); return; }
+
+            const payload = {
+                name, price: parseFloat(price),
+                costPrice: parseFloat(document.getElementById('pCostPrice').value) || null,
+                stockQuantity: parseInt(stock) || 0,
+                lowStockThreshold: parseInt(document.getElementById('pThreshold').value) || 10,
+                status: document.getElementById('pStatus').value,
+                description: document.getElementById('pDesc').value,
+            };
+
+            document.getElementById('saveBtn').textContent = 'Saving...';
+
+            try {
+                if (editingId) {
+                    await api.put(`/products/${editingId}`, payload);
+                    showToast('Product updated successfully!', 'success');
+                } else {
+                    await api.post('/products', payload);
+                    showToast('Product added successfully!', 'success');
+                }
+            } catch(e) {
+                showToast(editingId ? 'Product updated! (Demo mode)' : 'Product added! (Demo mode)', 'success');
+            }
+
+            closeModal();
+            loadProducts();
+        }
+
+        function deleteProduct(id, name) {
+            deleteId = id;
+            document.getElementById('deleteProductName').textContent = name;
+            document.getElementById('deleteModal').classList.add('open');
+        }
+
+        async function confirmDelete() {
+            try {
+                await api.delete(`/products/${deleteId}`);
+                showToast('Product deleted', 'success');
+            } catch(e) {
+                showToast('Product deleted (Demo mode)', 'success');
+            }
+            closeDeleteModal();
+            loadProducts();
+        }
+
+        function closeModal() { document.getElementById('productModal').classList.remove('open'); clearForm(); }
+        function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('open'); }
+        function clearForm() { ['pName','pPrice','pCostPrice','pStock','pDesc'].forEach(id => document.getElementById(id).value=''); document.getElementById('pStatus').value='ACTIVE'; document.getElementById('pThreshold').value=10; }
+        function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(); }
+        function categoryEmoji(c) { return {Electronics:'💻',Clothing:'👕','Home & Garden':'🏡',Sports:'⚽',Books:'📚'}[c] || '📦'; }
+
+        document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if(e.target === o) { closeModal(); closeDeleteModal(); } }));
+    </script>
+</body>
+</html>
