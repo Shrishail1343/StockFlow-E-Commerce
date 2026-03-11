@@ -1,0 +1,3 @@
+# Redirect /api/* → your Railway backend
+# Replace YOUR_RAILWAY_BACKEND_URL with the URL Railway gives you (e.g. https://stockflow-backend.up.railway.app)
+/api/* https://YOUR_RAILWAY_BACKEND_URL/api/:splat 200
